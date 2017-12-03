@@ -243,39 +243,6 @@ void  jumptimer_Tick(object sender, EventArgs e)
     {
         score = score + 100;
 
-        //you got hit
-       // jumptimer.Stop();
-       // DialogResult result1 = MessageBox.Show("congrats" , "DEAD",MessageBoxButtons.YesNo);
-        //if (result1 == DialogResult.Yes)
-        //{
-        //    //restart
-
-        //    //stop jumping
-        //    jumping = false;
-
-        //    //set bottom of player to ylimit
-        //    player.Y = ground;
-
-        //    //make upper 0
-        //    upper = 0;
-
-        //    //make gravity zero
-        //    gravity = 0;
-
-        //    //move hurtle to restart
-        //    goal.X = this.Width /2;
-
-        //    //start the timer again
-        //    jumptimer.Start();
-
-        //    //redraw
-        //    this.Invalidate();
-        //}
-        //else
-        //{
-        //    Application.Exit();
-        //}
-
     }
 
 }
