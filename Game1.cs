@@ -1,30 +1,3 @@
-//Jade Legare
-//april 5, 2017
-//pop art moodlight 
-
-/*
-- start 
-- state your varibles for the font, rectangles, picture, text string and vectors as well as the colour intensities and bools 
-- set the screen dimensions that you want 
-- initalize the rectangles in the multidimensional arrays, set the different values using the screen width and height to section it into four areas 
-- declare and load the picture of the dog 
-- when user presses the back button the program exits 
-- declare the text for the multidimensional text array 
-- create float values to measure the length and height of each word 
-- set your textvectors to the screen width divided by two and either add or subtact quarter the width of the screen and then subtract half the width of the word
-- set hte vector height by doing half the screen subtract the word height 
-- set your red, green and values to make the bool false if the intensity reaches 225 and true if the intensity reaches 0
-- if the bool it true then the colour intsneity will increase, else the intensity will decrease 
-- declare thepicture values for each section of the array by setting the array to the red, green and blue intensities adding or subtracting different values to make each section change a differetn colour 
-- draw the picture on the screen with the rectangle and colour 
-- also draw the fonts on the screen using the font loaded, the text array, the etxt vector for that specific section of the screen and set the words colour 
-- clear the colours on the screen so they can change each time 
-- end
-
- */
-
-
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,7 +9,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 
-namespace PopArtMoodlight
+namespace Neverland_2._0
 {
     /// <summary>
     /// This is the main type for your game
@@ -46,30 +19,49 @@ namespace PopArtMoodlight
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        
-        SpriteFont font;
-        Rectangle[,] picrec = new Rectangle [2,2];
-        Texture2D puppypic;
+        Rectangle playerrec;
+        Texture2D PeterPan;
 
-        string[,] text = new string[2, 2];
-        Vector2[,] txtvector = new Vector2 [2, 2];
+        CharacterGameItem player = new CharacterGameItem(5, 0, 100, 100);
 
-        //conrols colour values 
-        byte redIntensity = 100;
-        byte greenIntensity = 30;
-        byte blueIntensity = 60;
+        Rectangle enemyrec;
+        Rectangle magicrec;
 
-        Color[] piccolour = new Color[4];
+        Texture2D[] flyingitemtex = new Texture2D[5];
+        Texture2D healthbartex;
+        Rectangle[] healthbarrec = new Rectangle[6];
 
-        bool redCountingUp = true;
-        bool greenCountingUp = true;
-        bool blueCountingUp = true;
+        Rectangle flyingItemRec;
+        GameSpriteStruct[] flyingitem;
+        GameSpriteStruct pan;
+        GameSpriteStruct magic;
+        int numofitems = 20;
 
+        int score = 0;
+        int health = 5;
+        int level = 0;
+        int numposition;
+        bool noItems = true;
+        Random rand = new Random();
+
+        //background and screen info
+        Texture2D chosenBGpic;
+    
+        Rectangle BGrec;
+        Texture2D chosenFOpic;
+        Texture2D[] backgroundPic = new Texture2D[5];
+
+        //sprite values
+        float displayWidth;
+        float displayHeight;
+        float mindisplayX;
+        float mindisplayY;
+        float maxdisplayX;
+        float maxdisplayY;
+        float overScanPercentage = 10.0f;
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferHeight = 800;
-            graphics.PreferredBackBufferWidth = 800;
             Content.RootDirectory = "Content";
         }
 
@@ -81,15 +73,23 @@ namespace PopArtMoodlight
         /// </summary>
         protected override void Initialize()
         {
-            //do .25 of the window size to set window size
-            picrec[0, 0] = new Rectangle(0, 0, GraphicsDevice.Viewport.Width/2, GraphicsDevice.Viewport.Height/2);
-            picrec[0, 1] = new Rectangle(GraphicsDevice.Viewport.Width/2, 0, GraphicsDevice.Viewport.Width/2, GraphicsDevice.Viewport.Height/2);
-            picrec[1, 0] = new Rectangle(0, GraphicsDevice.Viewport.Height/2, GraphicsDevice.Viewport.Width/2, GraphicsDevice.Viewport.Height/2);
-            picrec[1, 1] = new Rectangle(GraphicsDevice.Viewport.Width/2, GraphicsDevice.Viewport.Height/2, GraphicsDevice.Viewport.Width/2, GraphicsDevice.Viewport.Height/2);
+            CharacterGameItem player = new CharacterGameItem(5, 0, playerrec.Y, playerrec.X);
+            //set to size of the screen 
+            //dont have to keep typing code over and over
+            displayHeight = GraphicsDevice.Viewport.Height;
+            displayWidth = GraphicsDevice.Viewport.Width;
+            pan.spriteRectangle = new Rectangle(GraphicsDevice.Viewport.Width / 2, GraphicsDevice.Viewport.Height / 2, 50, 50);
+            magic.spriteRectangle = new Rectangle(0, 200, 50, 50);
 
+            healthbarrec[5] = new Rectangle(GraphicsDevice.Viewport.Width - 200, GraphicsDevice.Viewport.Height/10, 200, 20);
+            healthbarrec[4] = new Rectangle(GraphicsDevice.Viewport.Width - 200, GraphicsDevice.Viewport.Height/10, 150, 20);
+            healthbarrec[3] = new Rectangle(GraphicsDevice.Viewport.Width - 200, GraphicsDevice.Viewport.Height/10, 100, 20);
+            healthbarrec[2] = new Rectangle(GraphicsDevice.Viewport.Width - 200, GraphicsDevice.Viewport.Height/10, 50, 20);
+            healthbarrec[1] = new Rectangle(GraphicsDevice.Viewport.Width - 200, GraphicsDevice.Viewport.Height/10, 25, 20);
 
-            puppypic = this.Content.Load<Texture2D>("puppy");
+            BGrec = new Rectangle(0, 0, GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height);
 
+          //  Background = new BackgroundClass();
             base.Initialize();
         }
 
@@ -101,11 +101,32 @@ namespace PopArtMoodlight
         {
             // Create a new SpriteBatch, which can be used to draw textures.
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            font = Content.Load<SpriteFont>("SpriteFont1");
 
+            healthbartex = this.Content.Load<Texture2D>("images/red");
+
+            //set image to one of peter pan flying
+            pan.spriteTexture = this.Content.Load<Texture2D>("images/peterflying");
+
+            magic.spriteTexture = this.Content.Load<Texture2D>("images/magictink");
+
+            flyingitemtex[0] = this.Content.Load<Texture2D>("images/clock");
+            flyingitemtex[1] = this.Content.Load<Texture2D>("images/smeed");
+            flyingitemtex[2] = this.Content.Load<Texture2D>("images/mermaid");
+            flyingitemtex[3] = this.Content.Load<Texture2D>("images/hook");
+            flyingitemtex[4] = this.Content.Load<Texture2D>("images/smeed");
+
+            declareSprites();
+           // flyingitemtex[0] = this.Content.Load<Texture2D>("smeed");
+           // flyingitemtex[1] = this.Content.Load<Texture2D>("clock");
+           // flyingitemtex[2] = this.Content.Load<Texture2D>("mermaid");
+
+            backgroundPic[0] = this.Content.Load<Texture2D>("images/london");
+            backgroundPic[1] = this.Content.Load<Texture2D>("images/neverland");
+            backgroundPic[2] = this.Content.Load<Texture2D>("images/mermaidlagoon");
+            backgroundPic[3] = this.Content.Load<Texture2D>("images/hookship");
+            backgroundPic[4] = this.Content.Load<Texture2D>("images/powwow");
         }
 
-       
         /// <summary>
         /// UnloadContent will be called once per game and is the place to unload
         /// all content.
@@ -125,77 +146,249 @@ namespace PopArtMoodlight
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
                 this.Exit();
 
-               
-           //text array      
-            text[0, 0] = "puppies";
-            text[0, 1] = "are";
-            text[1, 0] = "super";
-            text[1, 1] = "cute";
+          //  Background.SetRectangle(new Rectangle(0, 0, displayWidth, displayHeight));
 
-            //float array to measure size of each word
-            float[] wordwidth = new float[5];
-            float[] wordheight = new float[5];
-            wordwidth[0] = font.MeasureString("puppies").X;
-            wordheight[0] = font.MeasureString("puppies").Y;
+            GamePadState pad1 = GamePad.GetState(PlayerIndex.One);
+            KeyboardState KB = Keyboard.GetState();
+            chosenBGpic = backgroundPic[0];
+            chosenFOpic = flyingitemtex[0];
+            numposition = rand.Next(GraphicsDevice.Viewport.Height - 50);
 
-            wordwidth[1] = font.MeasureString("are").X;
-            wordheight[1] = font.MeasureString("are").Y;
+            /*// Move the bread
+            bread.X = bread.X + (bread.XSpeed * gamePad1.ThumbSticks.Left.X);
+            bread.Y = bread.Y - (bread.YSpeed * gamePad1.ThumbSticks.Left.Y);
+            bread.SpriteRectangle.X = (int)bread.X;
+            bread.SpriteRectangle.Y = (int)bread.Y;
+            */
+            {
+                //if press thumbstick up then players y value increases
+                if (KB.IsKeyDown(Keys.Up) || GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.Y == 1.0f)
+                {
+                    //move up on screen
+                    pan.spriteRectangle.Y--;
+                }
 
-            wordwidth[2] = font.MeasureString("super").X;
-            wordheight[2] = font.MeasureString("super").Y;
+                //if presses thumbstick down then players y value decreases
+                if (KB.IsKeyDown(Keys.Down) || GamePad.GetState(PlayerIndex.One).ThumbSticks.Right.Y == -1.0f)
+                {
+                    //move down screen
+                    pan.spriteRectangle.Y++;
 
-            wordwidth[3] = font.MeasureString("cute").X;
-            wordheight[3] = font.MeasureString("cute").Y;
-
-            //set text vector to centre the word by taking half the screen width or height and subtracting the word length
-            txtvector[0, 0] = new Vector2(GraphicsDevice.Viewport.Width/2 - GraphicsDevice.Viewport.Width/4 - wordwidth[0]/2, GraphicsDevice.Viewport.Height/2  - wordheight[0]);
-            txtvector[0, 1] = new Vector2(GraphicsDevice.Viewport.Width/2 + GraphicsDevice.Viewport.Width/4 - wordwidth[1]/2, GraphicsDevice.Viewport.Height/2  - wordheight[1]);
-            txtvector[1, 0] = new Vector2(GraphicsDevice.Viewport.Width / 2 - GraphicsDevice.Viewport.Width/4 - wordwidth[2]/2, GraphicsDevice.Viewport.Height  - wordheight[2]);
-            txtvector[1, 1] = new Vector2(GraphicsDevice.Viewport.Width / 2 + GraphicsDevice.Viewport.Width/4 - wordwidth[3]/2, GraphicsDevice.Viewport.Height - wordheight[3]);
-
-            //once hit 255 gently decrease
-            //usses bools to go up and down by changin true and false values
-
-            if (redIntensity == 225)
-                //make bool false so can decrease
-                redCountingUp = false;
-            if (redIntensity == 0)
-                //set bool to true to start increaseing again
-                redCountingUp = true;
-
-            if (redCountingUp)
-                //inscrease insity(== 0)
-                redIntensity++;
-            else
-                //decrease inswisity for colour
-                redIntensity--;
+                }
 
 
-            //control blue value to increase or decrease depending on colour tone from 0 - 225
+                if (flyingitem[level].Visible)
+                {
+                    noItems = false;
+                }
 
-            if (blueIntensity == 225)
-                blueCountingUp = false;
-            if (blueIntensity == 0)
-                blueCountingUp = true;
+                //
+                if (pan.spriteRectangle.Intersects(flyingitem[level].spriteRectangle))
+                {
+                    if (health > 0)
+                    {
+                        health--;
+                    }
 
-            if (blueCountingUp)
-                blueIntensity++;
-            else
-                blueIntensity--;
+                    flyingitem[level].Visible = false;
 
-            //control green value to increase or decrease depending on colour tone from 0 - 225
-            if (greenIntensity == 225)
-                greenCountingUp = false;
-            if (greenIntensity == 0)
-                greenCountingUp = true;
+                    setupSprite(ref flyingitem[level], 0.05f, 1000, 0, numposition, true);
 
-            if (greenCountingUp)
-                greenIntensity++;
-            else
-                greenIntensity--;
+                  //  noItems = true;
+                    // ENEMY COLLIDE 
+                }
+
+                if (pan.spriteRectangle.Intersects(magic.spriteRectangle))
+                {
+                    score++;
+                    magic.Visible = false;
+                    setupSprite(ref magic, 0.05f, 100.0f, 0, numposition + 10, true);
+
+                    // MAGIC COLLIDE 
+                }
+
+
+                if (noItems)
+                {
+                    //resetItems;
+                    //changes y position so flying objects arent coming out of same spot each time 
+                    flyingitem[level].spriteRectangle.Y = (int)flyingitem[level].Ypos + numposition;
+                    //moving the objects
+                    flyingitem[level].Xpos = flyingitem[level].Xpos + flyingitem[level].Xspeed;
+                    flyingitem[level].spriteRectangle.X = (int)(flyingitem[level].Xpos + 0.5f);
+
+                    flyingitem[level].Visible = true;
+
+                }
+                if(flyingitem[level].Xpos + flyingitem[level].spriteRectangle.Width >= GraphicsDevice.Viewport.Width)
+                {
+                  
+                    setupSprite(ref flyingitem[level], 0.05f, 1000, 0, numposition, true);
+
+                  //  flyingitem[level].spriteRectangle.X = (int)flyingitem[level].Xpos;
+                   // flyingitem[level].spriteRectangle.Y = (int)flyingitem[level].Ypos;
+                }
+
+                if (magic.Xpos + magic.spriteRectangle.Width >= GraphicsDevice.Viewport.Width)
+                {
+                    setupSprite(ref magic, 0.05f, 100.0f, 0, numposition, true);
+
+                }
+            }
+
+
+            if (health <= 0)
+            {
+                return;
+            }
+
+            //moving the objects
+            flyingitem[level].Xpos = flyingitem[level].Xpos + flyingitem[level].Xspeed;
+            flyingitem[level].spriteRectangle.X = (int)(flyingitem[level].Xpos + 0.5f);
+
+            //moving the magic fairy across the screen
+            magic.Xpos = magic.Xpos + magic.Xspeed;
+            magic.spriteRectangle.X = (int)(magic.Xpos + 0.5f);
+
+
+
+            if (score >= 10)
+                {
+                level = 1;
+                
+                chosenBGpic = backgroundPic[level];
+                chosenFOpic = flyingitemtex[level];
+                 }
+          
+           else if (score >= 20)
+            {
+                level = 2;
+
+                chosenBGpic = backgroundPic[level];
+                chosenFOpic = flyingitemtex[level];
+            }
+            else if (score >= 30)
+            {
+                level = 3;
+
+                chosenBGpic = backgroundPic[level];
+                chosenFOpic = flyingitemtex[level];
+            }
+            else if (score >= 40)
+            {
+                level = 4;
+
+                chosenBGpic = backgroundPic[level];
+                chosenFOpic = flyingitemtex[level];
+            }
+            else if (score >= 50)
+            {
+                level = 0;
+
+                chosenBGpic = backgroundPic[level];
+                chosenFOpic = flyingitemtex[level];
+            }
+            if (level >4)
+            {
+                level = 0;
+            }
 
             base.Update(gameTime);
         }
+
+
+        //METHODS
+        
+         public void TitleScreen(Game1 game)
+        {
+        //    if (game.GamePad1.Buttons.A == ButtonState.Pressed)
+            {
+         //       game.StartGame();
+            }
+        }
+      
+
+        //method to draw text on screen 
+        public void drawText(string text, Color textcolor, float x, float y)
+        {
+
+            int layer;
+            Vector2 textVector = new Vector2(x, y);
+            //sloid part of character text 
+            Color backColor = new Color(90, 190, 190);
+            for (layer = 0; layer > 10; layer++)
+            {
+                // spriteBatch.DrawString(font, text, textVector, backColor);
+                textVector.X++;
+                textVector.Y++;
+            }
+        }
+
+        //sprite values
+        public struct GameSpriteStruct
+        {
+            public Texture2D spriteTexture;
+            public Rectangle spriteRectangle;
+            public float Xpos;
+            public float Ypos;
+            public float Xspeed;
+            public float Yspeed;
+            public float widthfactor;
+            public float ticksToCrossScreen;
+            public bool Visible;
+
+        }
+
+        //reuse this code when declaring and setting up sprites
+        public void setupSprite(ref GameSpriteStruct sprite, float widthfactor, float ticksToCrossScreen, float initialX, float initialY, bool initialVisibility)
+        {
+            sprite.widthfactor = widthfactor;
+            sprite.ticksToCrossScreen = ticksToCrossScreen;
+            sprite.spriteRectangle.Width = (int)((displayWidth * widthfactor) + 0.5f);
+          //  float aspectRatio = (float)sprite.spriteTexture.Width / sprite.spriteTexture.Height;
+            sprite.spriteRectangle.Height = (int)((sprite.spriteRectangle.Width) + 0.5f);
+            sprite.Xpos = initialX;
+            sprite.Ypos = initialY;
+            sprite.Xspeed = displayWidth / ticksToCrossScreen;
+            sprite.Yspeed = sprite.Xspeed;
+            sprite.Visible = initialVisibility;
+
+        }
+
+        public void declareSprites()
+        {
+            setupSprite(ref pan, 0.05f, 200.0f, displayWidth / 2, displayHeight / 2, true);
+            setupSprite(ref magic, 0.05f, 100.0f, 50, numposition, true);
+
+            flyingitem = new GameSpriteStruct[numofitems];
+
+            
+                flyingitem[level].spriteTexture = flyingitemtex[level];
+                setupSprite(ref flyingitem[level], 0.05f, 1000, 0, 400, true);
+
+                flyingitem[level].spriteRectangle.X = (int)flyingitem[level].Xpos;
+                flyingitem[level].spriteRectangle.Y = (int)flyingitem[level].Ypos;
+            
+        }
+
+
+
+        //couple the player and enemy
+        // public bool checkCollision(flyingitem[i].spriteRctangle)
+
+        //     return spriteRectangle.Intercests(flyingitem);
+        public void resetItems()
+        {
+            //make flying item visible 
+            flyingitem[level].Visible = true;
+            //changes y position so flying objects arent coming out of same spot each time 
+            //  flyingitem[level].Ypos = flyingitem[level].Ypos + numposition;
+            //flyingitem[level].spriteRectangle.X = (int)flyingitem[level].Xpos;
+            flyingitem[level].spriteRectangle.Y = (int)flyingitem[level].Ypos + numposition;
+        }
+
+
+
 
         /// <summary>
         /// This is called when the game should draw itself.
@@ -203,35 +396,25 @@ namespace PopArtMoodlight
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
-           // GraphicsDevice.Clear(Color.CornflowerBlue);
-            
-            //set each array ofr the picture to a differetnt colour value that changes
-            piccolour[0] = new Color(redIntensity -100, greenIntensity, blueIntensity -50);
-            piccolour[1] = new Color(redIntensity + 100, greenIntensity, blueIntensity);
-            piccolour[2] = new Color(redIntensity , greenIntensity + 100, blueIntensity );
-            piccolour[3] = new Color(redIntensity, greenIntensity, blueIntensity + 100);
+            GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin();
-            //draws puppy picture on screen in array rec position with piccolour 
-            spriteBatch.Draw(puppypic, picrec[0, 0], piccolour[0]);
-            spriteBatch.Draw(puppypic, picrec[0, 1], piccolour[1]);
-            spriteBatch.Draw(puppypic, picrec[1, 0], piccolour[2]);
-            spriteBatch.Draw(puppypic, picrec[1, 1], piccolour[3]);
+            spriteBatch.Draw(chosenBGpic, BGrec, Color.White);
+            spriteBatch.Draw(pan.spriteTexture, pan.spriteRectangle, Color.White);
+           
+            //draws flying item on screen, picture shown changes depending on the level number
+            spriteBatch.Draw(flyingitemtex[level], flyingitem[0].spriteRectangle, Color.White);
+            
+            //draws the magic fairy on screen 
+            spriteBatch.Draw(magic.spriteTexture, magic.spriteRectangle, Color.White);
+            
+            //draw health bar on screen depending on how much helath the player has determines the length of the health bar
+            spriteBatch.Draw(healthbartex, healthbarrec[health], Color.White);
 
-            //drws the text on screen using the right font and which text and txtvector in each array, text colour is white
-            spriteBatch.DrawString(font, text[0, 0], txtvector[0, 0], Color.White);
-            spriteBatch.DrawString(font, text[0, 1], txtvector[0, 1], Color.White);
-            spriteBatch.DrawString(font, text[1, 0], txtvector[1, 0], Color.White);
-            spriteBatch.DrawString(font, text[1, 1], txtvector[1, 1], Color.White);
-
-            //clear colour on screen to add new colour
-            GraphicsDevice.Clear(piccolour[0]);
-            GraphicsDevice.Clear(piccolour[1]);
-            GraphicsDevice.Clear(piccolour[2]);
-            GraphicsDevice.Clear(piccolour[3]);
+            drawText("Score:" + score.ToString() , Color.White, 100,400);
+         
+            // +"Lives: " + health.ToString()
             spriteBatch.End();
-        
-
             base.Draw(gameTime);
         }
     }
